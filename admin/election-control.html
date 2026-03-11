@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Control - Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="admin-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">VoteHub Admin</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="candidates.html" class="nav-link">Candidates</a></li>
+                <li><a href="voters.html" class="nav-link">Voters</a></li>
+                <li><a href="election-control.html" class="nav-link active">Election Control</a></li>
+                <li><a href="statistics.html" class="nav-link">Statistics</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li class="admin-user">
+                    <span id="adminName">Admin</span>
+                    <button onclick="logout()" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">
+                    <span class="item-icon">📊</span>
+                    <span class="item-text">Dashboard</span>
+                </a>
+                <a href="candidates.html" class="sidebar-item">
+                    <span class="item-icon">👥</span>
+                    <span class="item-text">Candidates</span>
+                </a>
+                <a href="voters.html" class="sidebar-item">
+                    <span class="item-icon">🗳️</span>
+                    <span class="item-text">Voters</span>
+                </a>
+                <a href="election-control.html" class="sidebar-item active">
+                    <span class="item-icon">⚙️</span>
+                    <span class="item-text">Election Control</span>
+                </a>
+                <a href="statistics.html" class="sidebar-item">
+                    <span class="item-icon">📈</span>
+                    <span class="item-text">Statistics</span>
+                </a>
+                <a href="results.html" class="sidebar-item">
+                    <span class="item-icon">🏆</span>
+                    <span class="item-text">Results</span>
+                </a>
+                <hr class="sidebar-divider">
+                <a href="#" class="sidebar-item" onclick="logout()">
+                    <span class="item-icon">🚪</span>
+                    <span class="item-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Election Control</h1>
+                    <p>Manage election status and timing</p>
+                </div>
+            </div>
+
+            <!-- Election Status Card -->
+            <div class="control-card election-status-card">
+                <div class="card-header">
+                    <h2>Current Election Status</h2>
+                    <span class="status-indicator" id="statusIndicator"></span>
+                </div>
+                <div class="card-body">
+                    <div class="status-display">
+                        <div class="status-info">
+                            <p class="status-label">Election Status:</p>
+                            <p class="status-value" id="electionStatus">CLOSED</p>
+                        </div>
+                        <div class="status-info">
+                            <p class="status-label">Start Time:</p>
+                            <p class="status-value" id="startTime">Not Started</p>
+                        </div>
+                        <div class="status-info">
+                            <p class="status-label">End Time:</p>
+                            <p class="status-value" id="endTime">Not Set</p>
+                        </div>
+                        <div class="status-info">
+                            <p class="status-label">Time Remaining:</p>
+                            <p class="status-value" id="timeRemaining">--:--:--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Actions -->
+            <div class="control-actions">
+                <!-- Start Election -->
+                <div class="action-card">
+                    <div class="action-icon">▶️</div>
+                    <h3>Start Election</h3>
+                    <p>Begin the voting period</p>
+                    <button onclick="startElection()" class="btn btn-primary btn-large" id="startBtn">
+                        Start Election
+                    </button>
+                </div>
+
+                <!-- End Election -->
+                <div class="action-card">
+                    <div class="action-icon">⏹️</div>
+                    <h3>End Election</h3>
+                    <p>Stop the voting period</p>
+                    <button onclick="endElection()" class="btn btn-danger btn-large" id="endBtn" disabled>
+                        End Election
+                    </button>
+                </div>
+
+                <!-- Extend Election -->
+                <div class="action-card">
+                    <div class="action-icon">⏱️</div>
+                    <h3>Extend Election</h3>
+                    <p>Add more time to voting</p>
+                    <button onclick="openExtendModal()" class="btn btn-secondary btn-large" id="extendBtn" disabled>
+                        Extend Time
+                    </button>
+                </div>
+
+                <!-- Pause Election -->
+                <div class="action-card">
+                    <div class="action-icon">⏸️</div>
+                    <h3>Pause Election</h3>
+                    <p>Temporarily pause voting</p>
+                    <button onclick="pauseElection()" class="btn btn-secondary btn-large" id="pauseBtn" disabled>
+                        Pause Election
+                    </button>
+                </div>
+            </div>
+
+            <!-- Schedule Election -->
+            <div class="control-card">
+                <div class="card-header">
+                    <h2>Schedule Election</h2>
+                </div>
+                <form id="scheduleForm" class="schedule-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="startDate">Start Date & Time</label>
+                            <input type="datetime-local" id="startDate" name="startDate" required>
+                            <span class="error-message" id="startDateError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date & Time</label>
+                            <input type="datetime-local" id="endDate" name="endDate" required>
+                            <span class="error-message" id="endDateError"></span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Schedule Election</button>
+                </form>
+            </div>
+
+            <!-- Election Configuration -->
+            <div class="control-card">
+                <div class="card-header">
+                    <h2>Election Settings</h2>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="allowMultipleVotes">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <p class="setting-label">Allow Multiple Votes</p>
+                            <small>Voters can change their vote before deadline</small>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="enablePublicResults">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <p class="setting-label">Enable Public Results</p>
+                            <small>Show live results to all users</small>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="enableAnonymousVoting">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <p class="setting-label">Anonymous Voting</p>
+                            <small>Hide voter identity</small>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="saveSettings()" class="btn btn-primary" style="margin-top: 1rem;">
+                    Save Settings
+                </button>
+            </div>
+
+            <!-- Recent Activity Log -->
+            <div class="control-card">
+                <div class="card-header">
+                    <h2>Activity Log</h2>
+                </div>
+                <div class="activity-log" id="activityLog">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Extend Time Modal -->
+    <div class="modal" id="extendModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Extend Election Time</h2>
+                <button class="modal-close" onclick="closeExtendModal()">✕</button>
+            </div>
+            <form id="extendForm" class="modal-form">
+                <div class="form-group">
+                    <label for="extendHours">Additional Hours</label>
+                    <input type="number" id="extendHours" name="hours" min="1" max="24" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="extendMinutes">Additional Minutes</label>
+                    <input type="number" id="extendMinutes" name="minutes" min="0" max="59" value="0">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeExtendModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Extend Time</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/admin-election.js"></script>
+</body>
+</html>

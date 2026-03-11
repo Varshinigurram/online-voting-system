@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="index.html" class="nav-link">Dashboard</a></li>
+                <li><a href="voting.html" class="nav-link">Vote</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li><a href="profile.html" class="nav-link">Profile</a></li>
+            </ul>
+            <div class="navbar-auth">
+                <span id="voterName">Voter</span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 id="welcomeTitle">Welcome to VoteHub</h1>
+            <p id="welcomeMessage">Loading...</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" style="text-align: center; padding: 40px;">
+            <div class="loading-spinner"></div>
+            <p>Loading dashboard...</p>
+            <small style="color: #999;">Check console (F12) for errors</small>
+        </div>
+
+        <!-- Stats Grid -->
+        <div id="statsContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🗳️</div>
+                    <h3>Election Status</h3>
+                    <p id="electionStatus" class="stat-value">--</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <h3>Time Remaining</h3>
+                    <p id="timeRemaining" class="stat-value">--:--:--</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <h3>Your Voting Status</h3>
+                    <p id="votingStatus" class="stat-value">--</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <h3>Total Candidates</h3>
+                    <p id="totalCandidates" class="stat-value">--</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <a href="voting.html" id="voteBtn" class="btn btn-primary btn-large" style="display: none;">
+                        🗳️ Vote Now
+                    </a>
+                    <a href="results.html" class="btn btn-secondary btn-large">
+                        📊 View Results
+                    </a>
+                    <a href="profile.html" class="btn btn-secondary btn-large">
+                        👤 My Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Already Voted -->
+            <div class="alert-box alert-success" id="alreadyVoted" style="display: none;">
+                <h3>✅ You Have Already Voted</h3>
+                <p>Thank you for exercising your right to vote!</p>
+            </div>
+
+            <!-- Election Closed -->
+            <div class="alert-box alert-info" id="electionClosed" style="display: none;">
+                <h3>📋 Election is Closed</h3>
+                <p>The voting period has ended.</p>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none; text-align: center; padding: 40px;">
+            <p style="color: red; font-size: 18px;">⚠️ Error Loading Dashboard</p>
+            <p id="errorMessage" style="color: #666; margin-bottom: 20px;"></p>
+            <button onclick="location.reload()" class="btn btn-primary">🔄 Retry</button>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let DEBUG = true;
+
+        function log(msg, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] 📊 ${msg}`, data || '');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🔄 Dashboard page loaded');
+            
+            try {
+                // Check auth
+                const token = localStorage.getItem('voterToken');
+                log('Token check:', !!token);
+                
+                if (!token) {
+                    log('❌ No token found');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Load voter data
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+                log('Voter data:', voter);
+                
+                // Update UI
+                document.getElementById('voterName').textContent = voter.name || 'Voter';
+                document.getElementById('welcomeTitle').textContent = `Welcome, ${voter.name}!`;
+                document.getElementById('welcomeMessage').textContent = 'Get ready to vote';
+
+                // Load election status
+                await loadElectionStatus(token, voter);
+                
+            } catch (error) {
+                log('❌ Error in DOMContentLoaded:', error.message);
+                showError('Failed to initialize dashboard: ' + error.message);
+            }
+        });
+
+        async function loadElectionStatus(token, voter) {
+            try {
+                log('📨 Fetching election status from:', API_URL + '/admin/election-status');
+
+                const response = await fetch(`${API_URL}/admin/election-status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+
+                log('Response status:', response.status);
+                log('Response ok:', response.ok);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API error ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                log('Election status received:', data);
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Server error');
+                }
+
+                // Show content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('statsContent').style.display = 'block';
+
+                // Update status
+                const status = data.status || 'CLOSED';
+                document.getElementById('electionStatus').textContent = status;
+                document.getElementById('electionStatus').style.color = status === 'ACTIVE' ? '#27ae60' : '#f39c12';
+
+                // Update voting status
+                if (voter.hasVoted) {
+                    log('Voter has already voted');
+                    document.getElementById('votingStatus').textContent = '✓ Voted';
+                    document.getElementById('votingStatus').style.color = '#27ae60';
+                    document.getElementById('alreadyVoted').style.display = 'block';
+                } else if (status === 'ACTIVE') {
+                    log('Election active - showing vote button');
+                    document.getElementById('votingStatus').textContent = 'Ready';
+                    document.getElementById('votingStatus').style.color = '#667eea';
+                    document.getElementById('voteBtn').style.display = 'inline-block';
+                } else {
+                    log('Election closed');
+                    document.getElementById('votingStatus').textContent = 'Closed';
+                    document.getElementById('electionClosed').style.display = 'block';
+                }
+
+                // Load candidates
+                await loadCandidatesCount(token);
+
+                // Setup timer
+                if (status === 'ACTIVE' && data.endTime) {
+                    window.electionEndTime = new Date(data.endTime);
+                    startTimer();
+                }
+
+                log('✅ Dashboard loaded successfully');
+
+            } catch (error) {
+                log('❌ Error loading election status:', error.message);
+                showError('Failed to load election status:\n' + error.message);
+            }
+        }
+
+        async function loadCandidatesCount(token) {
+            try {
+                log('📨 Fetching candidates...');
+
+                const response = await fetch(`${API_URL}/voters/candidates`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log('Candidates response:', response.status);
+
+                if (!response.ok) throw new Error('Failed to load candidates');
+
+                const data = await response.json();
+                const count = data.candidates ? data.candidates.filter(c => !c.isNota).length : 0;
+                
+                document.getElementById('totalCandidates').textContent = count + ' + NOTA';
+                log('✅ Candidates loaded:', count);
+
+            } catch (error) {
+                log('❌ Error loading candidates:', error.message);
+                document.getElementById('totalCandidates').textContent = 'Error';
+            }
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                if (window.electionEndTime) {
+                    const now = new Date();
+                    const timeRemaining = window.electionEndTime - now;
+
+                    if (timeRemaining <= 0) {
+                        document.getElementById('timeRemaining').textContent = 'CLOSED';
+                    } else {
+                        const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+                        document.getElementById('timeRemaining').textContent = 
+                            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    }
+                }
+            }, 1000);
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('statsContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                log('Logged out');
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>

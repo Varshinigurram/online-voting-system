@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Candidate - Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="admin-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🛡️</span>
+                <span>VoteHub Admin</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="candidates.html" class="nav-link active">Candidates</a></li>
+                <li><a href="voters.html" class="nav-link">Voters</a></li>
+                <li><a href="election-control.html" class="nav-link">Election Control</a></li>
+                <li><a href="statistics.html" class="nav-link">Statistics</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li class="admin-user">
+                    <span id="adminName">Admin</span>
+                    <button onclick="logout()" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+                <a href="candidates.html" class="sidebar-item active">🎖️ Candidates</a>
+                <a href="voters.html" class="sidebar-item">👥 Voters</a>
+                <a href="election-control.html" class="sidebar-item">⚙️ Election Control</a>
+                <a href="statistics.html" class="sidebar-item">📈 Statistics</a>
+                <a href="results.html" class="sidebar-item">🏆 Results</a>
+                <hr class="sidebar-divider">
+                <a href="#" onclick="logout(); return false;" class="sidebar-item">🚪 Logout</a>
+            </div>
+        </aside>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Add New Candidate</h1>
+                    <p>Register a new candidate for the election</p>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <form id="addCandidateForm">
+                    <div class="form-grid">
+                        <!-- LEFT COLUMN -->
+                        <div class="form-column">
+                            <!-- Name -->
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="candidateName" placeholder="Enter name" required>
+                                <span class="error-msg" id="nameError"></span>
+                            </div>
+
+                            <!-- Party with Symbol -->
+                            <div class="form-group">
+                                <label>Political Party * (with Symbol)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 60px; gap: 10px;">
+                                    <select id="partyName" required onchange="updatePartySymbol()">
+                                        <option value="">-- Select Party --</option>
+                                        <option value="Independent">Independent</option>
+                                        <option value="BJP">Bharatiya Janata Party (BJP)</option>
+                                        <option value="INC">Indian National Congress (INC)</option>
+                                        <option value="BRS">Bharat Rashtra Samithi (BRS)</option>
+                                        <option value="AAPL">Aam Aadmi Party (AAPL)</option>
+                                        <option value="DMK">Dravida Munnetra Kazhagam (DMK)</option>
+                                        <option value="AIADMK">All India Anna DMDK (AIADMK)</option>
+                                        <option value="SP">Samajwadi Party (SP)</option>
+                                        <option value="BSP">Bahujan Samaj Party (BSP)</option>
+                                        <option value="NCP">Nationalist Congress Party (NCP)</option>
+                                        <option value="Green Party">Green Party</option>
+                                        <option value="Libertarian Party">Libertarian Party</option>
+                                    </select>
+                                    <div id="partySymbolDisplay" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #e0e7ff 0%, #f0f9ff 100%); border-radius: 8px; font-size: 32px; border: 2px solid #667eea;">
+                                        🏛️
+                                    </div>
+                                </div>
+                                <span class="error-msg" id="partyError"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="candidateEmail" placeholder="email@example.com">
+                                <span class="error-msg" id="emailError"></span>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="candidatePhone" placeholder="+91-XXXXXXXXXX">
+                                <span class="error-msg" id="phoneError"></span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN -->
+                        <div class="form-column">
+                            <!-- Image Upload -->
+                            <div class="form-group">
+                                <label>Candidate Photo *</label>
+                                <div class="photo-upload-area" id="photoUploadArea">
+                                    <input type="file" id="candidatePhoto" accept="image/*" style="display: none;">
+                                    <div id="uploadPlaceholder">
+                                        <div style="font-size: 32px; margin-bottom: 10px;">📸</div>
+                                        <p>Click to upload or drag & drop</p>
+                                        <small>PNG, JPG, GIF up to 5MB</small>
+                                    </div>
+                                    <img id="photoPreview" style="display: none; max-width: 100%; max-height: 200px; border-radius: 8px;">
+                                </div>
+                                <span class="error-msg" id="photoError"></span>
+                            </div>
+
+                            <!-- Image URL Alternative -->
+                            <div class="form-group">
+                                <label>Or Image URL</label>
+                                <input type="url" id="photoUrl" placeholder="https://example.com/photo.jpg">
+                                <img id="urlPhotoPreview" style="display: none; max-width: 100%; max-height: 100px; border-radius: 8px; margin-top: 10px;">
+                                <span class="error-msg" id="urlError"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biography -->
+                    <div class="form-group form-full">
+                        <label>Biography *</label>
+                        <textarea id="biography" placeholder="Enter biography..." rows="4" required></textarea>
+                        <small id="charCount">0/500</small>
+                        <span class="error-msg" id="bioError"></span>
+                    </div>
+
+                    <!-- Experience -->
+                    <div class="form-group form-full">
+                        <label>Experience</label>
+                        <textarea id="experience" placeholder="Enter experience..." rows="3"></textarea>
+                    </div>
+
+                    <!-- Policies -->
+                    <div class="form-group form-full">
+                        <label>Key Policies</label>
+                        <textarea id="policies" placeholder="Enter policies..." rows="3"></textarea>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="form-actions">
+                        <a href="candidates.html" class="btn btn-secondary">Cancel</a>
+                        <button type="reset" class="btn btn-secondary">Clear</button>
+                        <button type="submit" class="btn btn-primary">✅ Add Candidate</button>
+                    </div>
+                </form>
+
+                <div class="loading-state" id="loadingState" style="display: none;">
+                    <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+                    <p>Adding candidate...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <style>
+        .error-msg {
+            color: #e74c3c;
+            font-size: 12px;
+            display: none;
+        }
+        .error-msg.show {
+            display: block;
+        }
+    </style>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        let selectedImageFile = null;
+
+        const PARTY_SYMBOLS = {
+            'Independent': '🔷',
+            'INC': '🦁',
+            'BJP': '🔶',
+            'BRS': '⭐',
+            'AAPL': '🧡',
+            'DMK': '🟢',
+            'AIADMK': '⚫',
+            'SP': '🔴',
+            'BSP': '🟣',
+            'NCP': '🟡',
+            'Green Party': '🌿',
+            'Libertarian Party': '🗽'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadAdminInfo();
+            setupImageUpload();
+            setupBioCounter();
+            setupForm();
+        });
+
+        // Check Auth
+        function checkAdminAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Load Admin Info
+        function loadAdminInfo() {
+            const admin = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            const nameEls = document.querySelectorAll('#adminName');
+            nameEls.forEach(el => {
+                el.textContent = admin.name || 'Admin';
+            });
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                showToast('✅ Logged out', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        // Update Party Symbol
+        function updatePartySymbol() {
+            const party = document.getElementById('partyName').value;
+            const symbol = PARTY_SYMBOLS[party] || '🏛️';
+            const display = document.getElementById('partySymbolDisplay');
+            display.textContent = symbol;
+            display.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                display.style.transition = 'transform 0.3s';
+                display.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        // Setup Image Upload
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('photoUploadArea');
+            const fileInput = document.getElementById('candidatePhoto');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#667eea';
+                uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#ddd';
+                uploadArea.style.backgroundColor = 'transparent';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ddd';
+                uploadArea.style.backgroundColor = 'transparent';
+                handleImageFile(e.dataTransfer.files[0]);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleImageFile(e.target.files[0]);
+                }
+            });
+        }
+
+        // Handle Image File
+        function handleImageFile(file) {
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError('photoError', 'Invalid image type');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showError('photoError', 'File too large (max 5MB)');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('photoPreview');
+                const placeholder = document.getElementById('uploadPlaceholder');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                selectedImageFile = file;
+                clearError('photoError');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Bio Counter
+        function setupBioCounter() {
+            const bio = document.getElementById('biography');
+            const counter = document.getElementById('charCount');
+            bio.addEventListener('input', () => {
+                let text = bio.value;
+                if (text.length > 500) {
+                    bio.value = text.substring(0, 500);
+                }
+                counter.textContent = `${bio.value.length}/500`;
+            });
+        }
+
+        // Setup Form
+        function setupForm() {
+            document.getElementById('addCandidateForm').addEventListener('submit', submitForm);
+        }
+
+        // Submit Form
+        async function submitForm(e) {
+            e.preventDefault();
+
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const name = document.getElementById('candidateName').value.trim();
+            const party = document.getElementById('partyName').value.trim();
+            const email = document.getElementById('candidateEmail').value.trim();
+            const phone = document.getElementById('candidatePhone').value.trim();
+            const biography = document.getElementById('biography').value.trim();
+            const experience = document.getElementById('experience').value.trim();
+            const policies = document.getElementById('policies').value.trim();
+            const photoUrl = document.getElementById('photoUrl').value.trim();
+
+            // Validation
+            if (!name) return showError('nameError', 'Name required');
+            if (!party) return showError('partyError', 'Party required');
+            if (!biography) return showError('bioError', 'Biography required');
+            if (!selectedImageFile && !photoUrl) return showError('photoError', 'Photo required');
+
+            document.getElementById('addCandidateForm').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('party', party);
+                formData.append('email', email);
+                formData.append('phone', phone);
+                formData.append('biography', biography);
+                formData.append('experience', experience);
+                formData.append('policies', policies);
+                formData.append('imageUrl', photoUrl);
+
+                if (selectedImageFile) {
+                    formData.append('image', selectedImageFile);
+                }
+
+                const response = await fetch(`${API_URL}/api/admin/candidates`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to add');
+                }
+
+                showToast('✅ Candidate added successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'candidates.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+                showToast(`❌ ${error.message}`, 'error');
+                document.getElementById('addCandidateForm').style.display = 'block';
+                document.getElementById('loadingState').style.display = 'none';
+            }
+        }
+
+        // Error handling
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = msg;
+                el.classList.add('show');
+            }
+            showToast(`❌ ${msg}`, 'error');
+            return false;
+        }
+
+        function clearError(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = '';
+                el.classList.remove('show');
+            }
+        }
+
+        // Toast
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toast.style.cssText = `
+                background: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                border-left: 4px solid ${type === 'success' ? '#27ae60' : '#e74c3c'};
+                animation: slideInRight 0.3s ease-out;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-width: 300px;
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

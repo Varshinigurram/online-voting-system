@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <div class="navbar-auth">
+                <a href="index.html" class="btn btn-secondary">Back Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">🔐</div>
+                <h1>Welcome Back</h1>
+                <p>Login to your VoteHub account to vote</p>
+            </div>
+
+            <form id="loginForm">
+                <!-- Email -->
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                    <span class="error-msg" id="emailError"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label>Password *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                    </div>
+                    <span class="error-msg" id="passwordError"></span>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary btn-full">Login to Vote</button>
+
+                <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+
+                <span class="error-msg general-error" id="generalError"></span>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="register.html">Register here</a></p>
+                <p><a href="index.html">Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Check if already logged in - redirect to dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('voterToken');
+            if (token) {
+                console.log('Already logged in, redirecting to dashboard');
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Clear errors
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
+            document.getElementById('generalError').textContent = '';
+
+            // Validation
+            if (!email) {
+                document.getElementById('emailError').textContent = 'Email is required';
+                return;
+            }
+
+            if (!email.includes('@')) {
+                document.getElementById('emailError').textContent = 'Invalid email format';
+                return;
+            }
+
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Password is required';
+                return;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loginForm').style.opacity = '0.5';
+            document.getElementById('loginForm').style.pointerEvents = 'none';
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            try {
+                console.log('🔐 Login attempt:', email);
+
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Login failed');
+                }
+
+                if (!data.token) {
+                    throw new Error('No token received');
+                }
+
+                // Store token and user data
+                localStorage.setItem('voterToken', data.token);
+                localStorage.setItem('voterUser', JSON.stringify(data.user));
+
+                console.log('✅ Login successful');
+                showToast('✅ Login successful! Redirecting...', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                document.getElementById('generalError').textContent = `❌ ${error.message}`;
+                showToast(`❌ ${error.message}`, 'error');
+                
+                document.getElementById('loginForm').style.opacity = '1';
+                document.getElementById('loginForm').style.pointerEvents = 'auto';
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

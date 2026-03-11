@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="voting.html" class="nav-link active">Vote</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li><a href="profile.html" class="nav-link">Profile</a></li>
+            </ul>
+            <div class="navbar-auth">
+                <span id="voterName">Voter</span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Voting Container -->
+    <div class="voting-container">
+        <div class="voting-header">
+            <h1>🗳️ Cast Your Vote</h1>
+            <div id="votingStatus" class="voting-status">
+                <span class="status-badge">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Already Voted Alert -->
+        <div id="alreadyVoted" class="alert-box alert-success" style="display: none;">
+            <h3>✅ You Have Already Voted</h3>
+            <p>Thank you for participating in the election. You cannot vote again.</p>
+            <a href="results.html" class="btn btn-primary">View Results</a>
+        </div>
+
+        <!-- Election Not Active -->
+        <div id="electionNotActive" class="alert-box alert-info" style="display: none;">
+            <h3>📋 Election is Not Active</h3>
+            <p>You cannot vote at this time. Please wait for the voting period to begin.</p>
+            <a href="dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" style="text-align: center; padding: 40px;">
+            <div class="loading-spinner"></div>
+            <p>Loading candidates...</p>
+            <small style="color: #999; margin-top: 10px;">If this takes too long, check the browser console (F12)</small>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none; text-align: center; padding: 40px;">
+            <p style="color: red; font-size: 18px;">⚠️ Error Loading</p>
+            <p id="errorMessage" style="color: #666;"></p>
+            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">🔄 Retry</button>
+        </div>
+
+        <!-- Candidates Grid -->
+        <div id="candidatesGrid" class="voting-grid" style="display: none;"></div>
+
+        <!-- Selected Candidate -->
+        <div id="selectedSection" class="selected-section" style="display: none;">
+            <h3>📋 Your Selection:</h3>
+            <div id="selectedCandidate" class="selected-card"></div>
+        </div>
+
+        <!-- Submit Vote -->
+        <div id="submitSection" class="submit-section" style="display: none;">
+            <p class="warning">⚠️ Once you submit your vote, it cannot be changed. Please ensure your selection is correct.</p>
+            <button onclick="submitVote()" class="btn btn-primary btn-large">
+                ✅ CONFIRM & SUBMIT VOTE
+            </button>
+            <button onclick="clearSelection()" class="btn btn-secondary">
+                Change Selection
+            </button>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/common.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const DEBUG = true;
+        let selectedCandidateId = null;
+
+        function log(message, data = null) {
+            console.log(`[VOTING] ${message}`, data || '');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Voting page loaded');
+            
+            try {
+                const token = localStorage.getItem('voterToken');
+                log('Token found:', !!token);
+                
+                if (!token) {
+                    log('No token, redirecting to login');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                loadVoterNav();
+                checkElectionAndLoadCandidates();
+                
+            } catch (error) {
+                log('Error in DOMContentLoaded:', error);
+                showError('Failed to initialize: ' + error.message);
+            }
+        });
+
+        async function checkElectionAndLoadCandidates() {
+            try {
+                const token = localStorage.getItem('voterToken');
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+
+                log('Checking election status...');
+                log('Token:', token ? 'Found' : 'Not found');
+                log('Voter:', voter.name);
+
+                const statusResponse = await fetch(`${API_URL}/api/admin/election-status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log('Status response code:', statusResponse.status);
+
+                if (!statusResponse.ok) {
+                    throw new Error(`Failed to check election status: ${statusResponse.status}`);
+                }
+
+                const statusData = await statusResponse.json();
+                log('Election status:', statusData);
+
+                if (statusData.status !== 'ACTIVE') {
+                    log('Election not active');
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('electionNotActive').style.display = 'block';
+                    document.getElementById('votingStatus').innerHTML = '<span class="status-badge" style="background: #f39c12;">⏸️ Not Active</span>';
+                    return;
+                }
+
+                if (voter.hasVoted) {
+                    log('Already voted');
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('alreadyVoted').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('votingStatus').innerHTML = '<span class="status-badge" style="background: #27ae60;">🟢 Active</span>';
+
+                await loadCandidates(token);
+
+            } catch (error) {
+                log('Error checking election:', error);
+                showError('Failed: ' + error.message);
+            }
+        }
+
+        async function loadCandidates(token) {
+            try {
+                log('Fetching candidates from:', API_URL + '/api/voters/candidates');
+                log('Authorization token:', token ? 'Present' : 'Missing');
+
+                const response = await fetch(`${API_URL}/api/voters/candidates`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API error ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                log('Candidates received:', data.candidates ? data.candidates.length : 0);
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Server error');
+                }
+
+                if (!data.candidates || data.candidates.length === 0) {
+                    throw new Error('No candidates available. Admin may not have added any yet.');
+                }
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('candidatesGrid').style.display = 'grid';
+
+                displayCandidates(data.candidates);
+
+            } catch (error) {
+                log('Error loading candidates:', error);
+                showError('Failed to load candidates: ' + error.message);
+            }
+        }
+
+        function displayCandidates(candidates) {
+            log('Displaying', candidates.length, 'candidates');
+            
+            const grid = document.getElementById('candidatesGrid');
+            
+            if (!candidates || candidates.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No candidates available</p>';
+                return;
+            }
+
+            grid.innerHTML = candidates.map((c, index) => `
+                <div class="candidate-card" onclick="selectCandidate(event, '${c.id}', '${escapeQuotes(c.name)}', '${c.partySymbol}', '${escapeQuotes(c.party)}', '${c.imageUrl}', ${c.isNota || false})">
+                    <div class="candidate-image">
+                        <img src="${c.imageUrl}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/200?text=${encodeURIComponent(c.name)}'">
+                    </div>
+                    <div class="candidate-content">
+                        <h3 class="candidate-name">${c.name}</h3>
+                        <p class="candidate-party">
+                            <span>${c.partySymbol}</span>
+                            ${c.party}
+                        </p>
+                        ${!c.isNota ? `<p class="candidate-bio">${(c.biography || 'No description').substring(0, 80)}...</p>` : '<p class="candidate-bio">None of the Above</p>'}
+                        <div class="vote-checkbox">
+                            <input type="radio" name="candidate" value="${c.id}">
+                            <label>Select</label>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeQuotes(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        function selectCandidate(event, id, name, symbol, party, image, isNota) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            log('Selected:', name);
+
+            document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            document.querySelector(`input[value="${id}"]`).checked = true;
+
+            selectedCandidateId = id;
+
+            const selectedDiv = document.getElementById('selectedCandidate');
+            selectedDiv.innerHTML = `
+                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 20px; align-items: center;">
+                    <img src="${image}" alt="${name}" style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/100?text=${encodeURIComponent(name)}'">
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">${name}</h4>
+                        <p style="margin: 0 0 5px 0; color: #667eea;"><strong>${symbol} ${party}</strong></p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('selectedSection').style.display = 'block';
+            document.getElementById('submitSection').style.display = 'block';
+        }
+
+        function clearSelection() {
+            selectedCandidateId = null;
+            document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('input[name="candidate"]').forEach(i => i.checked = false);
+            document.getElementById('selectedSection').style.display = 'none';
+            document.getElementById('submitSection').style.display = 'none';
+        }
+
+        async function submitVote() {
+            if (selectedCandidateId === null && selectedCandidateId !== 0) {
+                showToast('❌ Please select a candidate', 'error');
+                return;
+            }
+
+            if (!confirm('⚠️ Are you sure? This cannot be changed.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('voterToken');
+
+                log('Submitting vote for:', selectedCandidateId);
+
+                const response = await fetch(`${API_URL}/api/voters/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ candidateId: selectedCandidateId })
+                });
+
+                log('Vote response:', response.status);
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to submit vote');
+                }
+
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+                voter.hasVoted = true;
+                voter.votedAt = new Date().toISOString();
+                localStorage.setItem('voterUser', JSON.stringify(voter));
+
+                showToast('✅ Vote submitted!', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'success.html';
+                }, 1500);
+
+            } catch (error) {
+                log('Error submitting vote:', error);
+                showToast(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('candidatesGrid').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

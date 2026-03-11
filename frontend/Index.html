@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteHub - Secure Online Voting System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span class="logo-text">VoteHub</span>
+            </div>
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#faq" class="nav-link">FAQ</a></li>
+            </ul>
+            <div class="navbar-auth" id="navbarAuth">
+                <a href="login.html" class="btn btn-secondary">Login</a>
+                <a href="register.html" class="btn btn-primary">Register</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">Your Vote, Your Voice, Your Future</h1>
+            <p class="hero-subtitle">Secure. Transparent. Democratic. Vote with confidence in a secure online voting system.</p>
+            <div class="hero-buttons">
+                <a href="register.html" class="btn btn-primary btn-large">🗳️ Start Voting Now</a>
+                <a href="login.html" class="btn btn-secondary btn-large">🔐 Login</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number" id="voterCount">0</div>
+                    <div class="stat-label">Active Voters</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="candidateCount">0</div>
+                    <div class="stat-label">Candidates</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="voteCount">0</div>
+                    <div class="stat-label">Votes Cast</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About VoteHub</h2>
+            <p>VoteHub is India's leading secure, transparent, and user-friendly online voting platform designed to make voting accessible to everyone. Our mission is to strengthen democracy through technology.</p>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-icon">🔒</div>
+                    <h3>Bank-Level Security</h3>
+                    <p>Enterprise-grade encryption ensures your vote is protected with military-grade security protocols</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">✓</div>
+                    <h3>Verified Voters</h3>
+                    <p>Only eligible voters can participate - strict verification ensures election integrity</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">📊</div>
+                    <h3>Real-Time Transparency</h3>
+                    <p>Live results and complete audit trails provide full transparency to all stakeholders</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Vote instantly from anywhere with our optimized platform and 99.9% uptime guarantee</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">🌐</div>
+                    <h3>Accessible 24/7</h3>
+                    <p>Vote anytime during election period from any device with internet connectivity</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">♿</div>
+                    <h3>Inclusive Design</h3>
+                    <p>Designed for everyone - accessible interface for voters of all abilities</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Easy Registration</h3>
+                    <p>Complete voter registration in just 2 minutes with simple form and verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗳️</div>
+                    <h3>One-Click Voting</h3>
+                    <p>Vote for your preferred candidate instantly with single-click confirmation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Live Results</h3>
+                    <p>Watch results update in real-time as votes are cast throughout the election</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👤</div>
+                    <h3>Detailed Profiles</h3>
+                    <p>View comprehensive candidate profiles with policies, experience, and vision</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Responsive</h3>
+                    <p>Vote from any device - fully optimized for mobile, tablet, and desktop</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✋</div>
+                    <h3>NOTA Option</h3>
+                    <p>Exercise your right to vote for NOTA (None of the Above) option</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>How do I register to vote?</h4>
+                    <p>Click "Register" button, fill your details (name, email, DOB, phone, password) and verify your account. Registration takes less than 2 minutes.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Is my vote secure?</h4>
+                    <p>Yes! We use bank-level encryption, secure servers, and follow international security standards. Your vote is completely encrypted and tamper-proof.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Can I vote multiple times?</h4>
+                    <p>No, our system prevents double voting. Once you vote, you cannot vote again. This is strictly enforced both in frontend and backend.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>What if I want to vote for NOTA?</h4>
+                    <p>NOTA (None of the Above) option is available alongside all candidates. Your NOTA vote carries the same weight as any candidate vote.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>When can I vote?</h4>
+                    <p>You can vote anytime during the election period as announced by the admin. The system displays exact start and end times.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Can I change my vote after submission?</h4>
+                    <p>No, once submitted, your vote is final and cannot be changed. This ensures election integrity and prevents vote manipulation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-content">
+            <h2>Ready to Vote?</h2>
+            <p>Join thousands of voters exercising their democratic right securely online</p>
+            <a href="register.html" class="btn btn-primary btn-large">Register Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>VoteHub</h4>
+                    <p>Secure Online Voting System</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 VoteHub. All rights reserved. | Secure Democracy Through Technology</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Hamburger Menu
+        document.getElementById('hamburger').addEventListener('click', () => {
+            document.getElementById('navbarMenu').classList.toggle('active');
+        });
+
+        // Close menu when clicking on links
+        document.querySelectorAll('.navbar-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navbarMenu').classList.remove('active');
+            });
+        });
+
+        // Load stats
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/statistics`, {
+                    headers: {
+                        'Authorization': `Bearer fake-token` // Demo only
+                    }
+                });
+
+                // Set demo stats if API fails
+                document.getElementById('voterCount').textContent = '5000+';
+                document.getElementById('candidateCount').textContent = '12';
+                document.getElementById('voteCount').textContent = '3500+';
+
+            } catch (error) {
+                // Demo stats
+                document.getElementById('voterCount').textContent = '5000+';
+                document.getElementById('candidateCount').textContent = '12';
+                document.getElementById('voteCount').textContent = '3500+';
+            }
+
+            // Check if logged in
+            const token = localStorage.getItem('voterToken');
+            if (token) {
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+                document.getElementById('navbarAuth').innerHTML = `
+                    <span>Welcome, ${voter.name}</span>
+                    <a href="dashboard.html" class="btn btn-primary">Go Vote</a>
+                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                `;
+            }
+        });
+
+        // Logout
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                showToast('✅ Logged out', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+
+        // Toast
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

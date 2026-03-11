@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Results - Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="admin-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">VoteHub Admin</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="candidates.html" class="nav-link">Candidates</a></li>
+                <li><a href="voters.html" class="nav-link">Voters</a></li>
+                <li><a href="election-control.html" class="nav-link">Election Control</a></li>
+                <li><a href="statistics.html" class="nav-link">Statistics</a></li>
+                <li><a href="results.html" class="nav-link active">Results</a></li>
+                <li class="admin-user">
+                    <span id="adminName">Admin</span>
+                    <button onclick="logout()" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">
+                    <span class="item-icon">📊</span>
+                    <span class="item-text">Dashboard</span>
+                </a>
+                <a href="candidates.html" class="sidebar-item">
+                    <span class="item-icon">👥</span>
+                    <span class="item-text">Candidates</span>
+                </a>
+                <a href="voters.html" class="sidebar-item">
+                    <span class="item-icon">🗳️</span>
+                    <span class="item-text">Voters</span>
+                </a>
+                <a href="election-control.html" class="sidebar-item">
+                    <span class="item-icon">⚙️</span>
+                    <span class="item-text">Election Control</span>
+                </a>
+                <a href="statistics.html" class="sidebar-item">
+                    <span class="item-icon">📈</span>
+                    <span class="item-text">Statistics</span>
+                </a>
+                <a href="results.html" class="sidebar-item active">
+                    <span class="item-icon">🏆</span>
+                    <span class="item-text">Results</span>
+                </a>
+                <hr class="sidebar-divider">
+                <a href="#" class="sidebar-item" onclick="logout()">
+                    <span class="item-icon">🚪</span>
+                    <span class="item-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Election Results</h1>
+                    <p>Final results and winner announcement</p>
+                </div>
+                <div class="header-controls">
+                    <button onclick="refreshResults()" class="btn btn-secondary">
+                        🔄 Refresh
+                    </button>
+                    <button onclick="publishResults()" class="btn btn-primary">
+                        📢 Publish Results
+                    </button>
+                </div>
+            </div>
+
+            <!-- Winner Announcement -->
+            <div class="winner-card" id="winnerCard">
+                <div class="winner-content">
+                    <div class="trophy-icon">🏆</div>
+                    <h2>Election Winner</h2>
+                    <div class="winner-info">
+                        <div class="winner-image" id="winnerImage"></div>
+                        <div class="winner-details">
+                            <h3 id="winnerName">--</h3>
+                            <p id="winnerParty">--</p>
+                            <p class="winner-votes">
+                                <span id="winnerVoteCount">0</span> Votes
+                                (<span id="winnerPercentage">0</span>%)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div class="results-summary">
+                <div class="summary-item">
+                    <p class="summary-label">Total Votes Cast</p>
+                    <p class="summary-value" id="totalVotesCast">0</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Total Candidates</p>
+                    <p class="summary-value" id="totalCandidates">0</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Voter Participation</p>
+                    <p class="summary-value" id="voterParticipation">0%</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Result Status</p>
+                    <p class="summary-value" id="resultStatus">Pending</p>
+                </div>
+            </div>
+
+            <!-- Detailed Results Table -->
+            <div class="results-section">
+                <h3>Detailed Results by Candidate</h3>
+                <div class="table-container">
+                    <table class="admin-table results-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Image</th>
+                                <th>Candidate Name</th>
+                                <th>Party</th>
+                                <th>Total Votes</th>
+                                <th>Percentage</th>
+                                <th>Vote Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Result Verification -->
+            <div class="verification-section">
+                <h3>Result Verification</h3>
+                <div class="verification-grid">
+                    <div class="verification-item">
+                        <span class="verification-icon">✓</span>
+                        <p>All votes counted</p>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-icon">✓</span>
+                        <p>No duplicate entries</p>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-icon">✓</span>
+                        <p>Result certified</p>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-icon">✓</span>
+                        <p>Secure computation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export and Share -->
+            <div class="export-results">
+                <h3>Share Results</h3>
+                    <button onclick="shareResults()" class="btn btn-secondary">
+                        🔗 Share Results
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/admin-results.js"></script>
+</body>
+</html>

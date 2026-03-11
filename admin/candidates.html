@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Candidates - Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+    <script src="js/party-symbols.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="admin-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">VoteHub Admin</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="candidates.html" class="nav-link active">Candidates</a></li>
+                <li><a href="voters.html" class="nav-link">Voters</a></li>
+                <li><a href="election-control.html" class="nav-link">Election Control</a></li>
+                <li><a href="statistics.html" class="nav-link">Statistics</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li class="admin-user">
+                    <span id="adminName">Admin</span>
+                    <button onclick="logout()" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+            <div class="hamburger" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">
+                    <span class="item-icon">📊</span>
+                    <span class="item-text">Dashboard</span>
+                </a>
+                <a href="candidates.html" class="sidebar-item active">
+                    <span class="item-icon">🎖️</span>
+                    <span class="item-text">Candidates</span>
+                </a>
+                <a href="voters.html" class="sidebar-item">
+                    <span class="item-icon">👥</span>
+                    <span class="item-text">Voters</span>
+                </a>
+                <a href="election-control.html" class="sidebar-item">
+                    <span class="item-icon">⚙️</span>
+                    <span class="item-text">Election Control</span>
+                </a>
+                <a href="statistics.html" class="sidebar-item">
+                    <span class="item-icon">📈</span>
+                    <span class="item-text">Statistics</span>
+                </a>
+                <a href="results.html" class="sidebar-item">
+                    <span class="item-icon">🏆</span>
+                    <span class="item-text">Results</span>
+                </a>
+                <hr class="sidebar-divider">
+                <a href="#" class="sidebar-item" onclick="logout(); return false;">
+                    <span class="item-icon">🚪</span>
+                    <span class="item-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Candidate Management</h1>
+                    <p>Add, edit, and manage all candidates</p>
+                </div>
+                <div class="header-controls">
+                    <a href="add-candidate.html" class="btn btn-primary">
+                        + Add New Candidate
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search candidates by name or party..."
+                        onkeyup="searchCandidates()"
+                    >
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="filter-controls">
+                    <select id="partyFilter" onchange="filterCandidates()" class="filter-select">
+                        <option value="">All Parties</option>
+                        <option value="Democratic Party">Democratic Party</option>
+                        <option value="Republican Party">Republican Party</option>
+                        <option value="Independent">Independent</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Candidates Table -->
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Party</th>
+                            <th>Biography</th>
+                            <th>Symbol</th>
+                            <th>Votes</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidatesTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>No Candidates Found</h3>
+                <p>Start by adding your first candidate</p>
+                <a href="add-candidate.html" class="btn btn-primary">Add Candidate</a>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Populated by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Candidate</h2>
+                <button class="modal-close" onclick="closeEditModal()">✕</button>
+            </div>
+            <form id="editCandidateForm" class="modal-form">
+                <div class="form-group">
+                    <label for="editName">Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editParty">Party</label>
+                    <input type="text" id="editParty" required>
+                </div>
+                <div class="form-group">
+                    <label for="editBio">Biography</label>
+                    <textarea id="editBio" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editImage">Image URL</label>
+                    <input type="url" id="editImage">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Candidate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Delete Candidate</h2>
+            </div>
+            <p id="deleteMessage"></p>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/admin-candidates.js"></script>
+</body>
+</html>

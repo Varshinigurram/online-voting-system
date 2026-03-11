@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="voting.html" class="nav-link">Vote</a></li>
+                <li><a href="results.html" class="nav-link active">Results</a></li>
+                <li><a href="profile.html" class="nav-link">Profile</a></li>
+            </ul>
+            <div class="navbar-auth">
+                <span id="voterName">Voter</span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Results Container -->
+    <div class="results-container">
+        <div class="results-header">
+            <h1>📊 Election Results</h1>
+            <div class="results-stats">
+                <div class="stat">
+                    <div class="stat-number" id="totalVotes">0</div>
+                    <div class="stat-label">Total Votes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="totalCandidates">0</div>
+                    <div class="stat-label">Candidates</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Winner Card -->
+        <div id="winnerCard" class="winner-card" style="display: none;">
+            <h2>🏆 Election Winner</h2>
+            <div class="winner-content">
+                <img id="winnerImage" src="" alt="Winner" class="winner-image">
+                <div class="winner-info">
+                    <h3 id="winnerName"></h3>
+                    <p id="winnerParty"></p>
+                    <p id="winnerVotes" class="winner-votes"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="results-table-container">
+            <h2>Vote Counts & Rankings</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Candidate</th>
+                        <th>Party</th>
+                        <th>Votes</th>
+                        <th>Percentage</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                    <tr><td colspan="6" style="text-align: center; padding: 30px;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Refresh Button -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="refreshResults()" class="btn btn-secondary">🔄 Refresh Results</button>
+            <a href="dashboard.html" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/common.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadVoterNav();
+            loadResults();
+
+            // Refresh results every 5 seconds
+            setInterval(loadResults, 5000);
+        });
+
+        async function loadResults() {
+            try {
+                const token = localStorage.getItem('voterToken');
+
+                const response = await fetch(`${API_URL}/api/voters/results`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load results');
+
+                const data = await response.json();
+                displayResults(data.results, data.totalVotes);
+
+            } catch (error) {
+                console.error('Error loading results:', error);
+                showToast(`❌ Failed to load results`, 'error');
+            }
+        }
+
+        function displayResults(results, totalVotes) {
+            // Winner Card
+            if (results.length > 0) {
+                const winner = results[0];
+                document.getElementById('winnerName').textContent = winner.name;
+                document.getElementById('winnerParty').textContent = `${winner.partySymbol} ${winner.party}`;
+                document.getElementById('winnerVotes').textContent = `${winner.votes} votes (${winner.percentage}%)`;
+                document.getElementById('winnerImage').src = winner.imageUrl;
+                document.getElementById('winnerCard').style.display = 'block';
+            }
+
+            // Stats
+            document.getElementById('totalVotes').textContent = totalVotes.toLocaleString();
+            document.getElementById('totalCandidates').textContent = results.length;
+
+            // Table
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = results.map((c, i) => `
+                <tr>
+                    <td><strong>#${i + 1}</strong></td>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.partySymbol} ${c.party}</td>
+                    <td><strong>${c.votes}</strong></td>
+                    <td><strong>${c.percentage}%</strong></td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${c.percentage}%"></div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function refreshResults() {
+            showToast('🔄 Refreshing results...', 'info');
+            loadResults();
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

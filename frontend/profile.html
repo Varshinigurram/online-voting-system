@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="voting.html" class="nav-link">Vote</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li><a href="profile.html" class="nav-link active">Profile</a></li>
+            </ul>
+            <div class="navbar-auth">
+                <span id="voterName">Voter</span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Container -->
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>👤 Your Profile</h1>
+            <p>Your voter account information and voting status</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" style="text-align: center; padding: 40px;">
+            <div class="loading-spinner"></div>
+            <p>Loading your profile...</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profileContent" style="display: none;">
+            <div class="profile-card">
+                <!-- Personal Information -->
+                <div class="profile-section">
+                    <h2>📋 Personal Information</h2>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Full Name:</span>
+                            <span class="info-value" id="profileName">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value" id="profileEmail">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Voter ID:</span>
+                            <span class="info-value" id="profileVoterId">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone:</span>
+                            <span class="info-value" id="profilePhone">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Date of Birth:</span>
+                            <span class="info-value" id="profileDOB">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Registered:</span>
+                            <span class="info-value" id="profileCreatedAt">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voting Status -->
+                <div class="profile-section">
+                    <h2>🗳️ Voting Status</h2>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value" id="votingStatus">Not Voted</span>
+                        </div>
+                        <div class="info-row" id="votedAtRow" style="display: none;">
+                            <span class="info-label">Voted At:</span>
+                            <span class="info-value" id="votedAt">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="profile-section">
+                    <h2>⚙️ Account Actions</h2>
+                    <div class="action-grid">
+                        <button onclick="downloadProfile()" class="btn btn-secondary">📥 Download Profile</button>
+                        <button onclick="viewPrivacy()" class="btn btn-secondary">🔒 Privacy Policy</button>
+                        <button onclick="viewTerms()" class="btn btn-secondary">📜 Terms of Service</button>
+                        <button onclick="deleteAccount()" class="btn btn-danger">🗑️ Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none; text-align: center; padding: 40px;">
+            <p style="color: red; font-size: 18px;">⚠️ Error Loading Profile</p>
+            <p id="errorMessage" style="color: #666;"></p>
+            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">🔄 Retry</button>
+        </div>
+
+        <!-- Navigation Links -->
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/common.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const DEBUG = true;
+
+        function log(message, data = null) {
+            console.log(`[PROFILE] ${message}`, data || '');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Profile page loaded');
+            
+            try {
+                const token = localStorage.getItem('voterToken');
+                log('Token found:', !!token);
+                
+                if (!token) {
+                    log('No token, redirecting to login');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                loadVoterNav();
+                displayProfile();
+                
+            } catch (error) {
+                log('Error:', error);
+                showError('Failed to initialize: ' + error.message);
+            }
+        });
+
+        function displayProfile() {
+            try {
+                log('Loading profile from localStorage...');
+                
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+                
+                log('Voter data:', voter);
+
+                if (!voter || !voter.name) {
+                    throw new Error('No voter data found in localStorage');
+                }
+
+                // Hide loading, show content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('profileContent').style.display = 'block';
+
+                // Display information
+                document.getElementById('profileName').textContent = voter.name || 'N/A';
+                document.getElementById('profileEmail').textContent = voter.email || 'N/A';
+                document.getElementById('profileVoterId').textContent = `VOTER-${voter.id}` || 'N/A';
+                document.getElementById('profilePhone').textContent = voter.phone || 'N/A';
+                document.getElementById('profileDOB').textContent = voter.dateOfBirth ? new Date(voter.dateOfBirth).toLocaleDateString() : 'N/A';
+                document.getElementById('profileCreatedAt').textContent = voter.createdAt ? new Date(voter.createdAt).toLocaleString() : 'N/A';
+
+                // Voting status
+                if (voter.hasVoted) {
+                    document.getElementById('votingStatus').textContent = '✓ Voted';
+                    document.getElementById('votingStatus').style.color = '#27ae60';
+                    if (voter.votedAt) {
+                        document.getElementById('votedAt').textContent = new Date(voter.votedAt).toLocaleString();
+                        document.getElementById('votedAtRow').style.display = 'grid';
+                    }
+                } else {
+                    document.getElementById('votingStatus').textContent = 'Not Voted';
+                    document.getElementById('votingStatus').style.color = '#f39c12';
+                }
+
+                log('✅ Profile displayed');
+
+            } catch (error) {
+                log('Error displaying profile:', error);
+                showError('Failed to load profile: ' + error.message);
+            }
+        }
+
+        function downloadProfile() {
+            try {
+                const voter = JSON.parse(localStorage.getItem('voterUser') || '{}');
+                const data = {
+                    voterId: `VOTER-${voter.id}`,
+                    name: voter.name,
+                    email: voter.email,
+                    phone: voter.phone,
+                    dateOfBirth: voter.dateOfBirth,
+                    hasVoted: voter.hasVoted,
+                    downloadedAt: new Date().toLocaleString()
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `profile-${voter.id}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                showToast('✅ Downloaded', 'success');
+            } catch (error) {
+                showToast('❌ Error', 'error');
+            }
+        }
+
+        function viewPrivacy() {
+            alert('Privacy Policy\n\n✓ Data encrypted\n✓ No sharing\n✓ Anonymous voting\n✓ Secure storage');
+        }
+
+        function viewTerms() {
+            alert('Terms of Service\n\n1. Must be 18+\n2. Vote only once\n3. Final once submitted\n4. No unauthorized access');
+        }
+
+        function deleteAccount() {
+            if (!confirm('⚠️ Delete account? Cannot undo.')) return;
+            if (!confirm('❌ Absolutely sure?')) return;
+            
+            localStorage.clear();
+            showToast('✅ Deleted', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('profileContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

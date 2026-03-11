@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="admin-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🛡️</span>
+                <span>VoteHub Admin</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="candidates.html" class="nav-link">Candidates</a></li>
+                <li><a href="voters.html" class="nav-link">Voters</a></li>
+                <li><a href="election-control.html" class="nav-link">Election Control</a></li>
+                <li><a href="statistics.html" class="nav-link active">Statistics</a></li>
+                <li><a href="results.html" class="nav-link">Results</a></li>
+                <li class="admin-user">
+                    <span id="adminName">Admin</span>
+                    <button onclick="logout()" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+                <a href="candidates.html" class="sidebar-item">🎖️ Candidates</a>
+                <a href="voters.html" class="sidebar-item">👥 Voters</a>
+                <a href="election-control.html" class="sidebar-item">⚙️ Election Control</a>
+                <a href="statistics.html" class="sidebar-item active">📈 Statistics</a>
+                <a href="results.html" class="sidebar-item">🏆 Results</a>
+                <hr class="sidebar-divider">
+                <a href="#" onclick="logout(); return false;" class="sidebar-item">🚪 Logout</a>
+            </div>
+        </aside>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <div class="header-title">
+                    <h1>Election Statistics</h1>
+                    <p>Real-time voting data and analytics</p>
+                </div>
+                <div class="header-controls">
+                    <button onclick="refreshStats()" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <!-- Export Buttons -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                <button onclick="exportCSV()" class="btn btn-primary" style="width: 100%;">
+                    📥 Download CSV
+                </button>
+                <button onclick="exportJSON()" class="btn btn-primary" style="width: 100%;">
+                    📥 Download JSON
+                </button>
+                <button onclick="shareResults()" class="btn btn-secondary" style="width: 100%;">
+                    📤 Share Results
+                </button>
+            </div>
+
+            <!-- Statistics Table -->
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Candidate</th>
+                            <th>Party</th>
+                            <th>Votes</th>
+                            <th>Percentage</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statisticsTableBody">
+                        <tr><td colspan="6" style="text-align: center; padding: 30px;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadAdminInfo();
+            loadStatistics();
+        });
+
+        function checkAdminAuth() {
+            if (!localStorage.getItem('adminToken')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function loadAdminInfo() {
+            const admin = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            document.querySelectorAll('#adminName').forEach(el => {
+                el.textContent = admin.name || 'Admin';
+            });
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.clear();
+                showToast('✅ Logged out', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        async function loadStatistics() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`${API_URL}/api/admin/statistics`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.candidates) {
+                    displayStats(data.candidates);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Failed to load statistics', 'error');
+            }
+        }
+
+        function displayStats(candidates) {
+            const tbody = document.getElementById('statisticsTableBody');
+            const total = candidates.reduce((sum, c) => sum + c.votes, 0);
+
+            tbody.innerHTML = candidates.map((c, i) => {
+                const percent = total > 0 ? Math.round((c.votes / total) * 100) : 0;
+                return `
+                    <tr>
+                        <td><strong>${i + 1}</strong></td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.partySymbol} ${c.party}</td>
+                        <td><strong>${c.votes}</strong></td>
+                        <td><strong>${percent}%</strong></td>
+                        <td>
+                            <div style="width: 100px; height: 6px; background: #ddd; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function exportCSV() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                showToast('📥 Downloading CSV...', 'info');
+
+                const response = await fetch(`${API_URL}/api/admin/statistics/export/csv`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const blob = await response.blob();
+                downloadFile(blob, 'statistics.csv');
+                showToast('✅ CSV downloaded', 'success');
+
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Download failed', 'error');
+            }
+        }
+
+        async function exportJSON() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                showToast('📥 Downloading JSON...', 'info');
+
+                const response = await fetch(`${API_URL}/api/admin/statistics/export/json`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const blob = await response.blob();
+                downloadFile(blob, 'statistics.json');
+                showToast('✅ JSON downloaded', 'success');
+
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Download failed', 'error');
+            }
+        }
+
+        function downloadFile(blob, filename) {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function shareResults() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Election Results',
+                    text: 'View the election results',
+                    url: url
+                }).catch(err => console.log('Share error:', err));
+            } else {
+                navigator.clipboard.writeText(url);
+                showToast('✅ Link copied to clipboard', 'success');
+            }
+        }
+
+        function refreshStats() {
+            showToast('🔄 Refreshing...', 'info');
+            loadStatistics();
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toast.style.cssText = `
+                background: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                border-left: 4px solid ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12'};
+                animation: slideInRight 0.3s ease-out;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-width: 300px;
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - VoteHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <span class="logo-icon">🗳️</span>
+                <span>VoteHub</span>
+            </div>
+            <div class="navbar-auth">
+                <a href="index.html" class="btn btn-secondary">Back Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Register Container -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">📝</div>
+                <h1>Create Your Account</h1>
+                <p>Join VoteHub and exercise your right to vote</p>
+            </div>
+
+            <form id="registerForm">
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input 
+                            type="text" 
+                            id="fullName" 
+                            placeholder="Enter your full name"
+                            required
+                        >
+                    </div>
+                    <span class="error-msg" id="nameError"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                    <span class="error-msg" id="emailError"></span>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📱</span>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            placeholder="+91-XXXXXXXXXX"
+                        >
+                    </div>
+                    <span class="error-msg" id="phoneError"></span>
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="form-group">
+                    <label>Date of Birth *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📅</span>
+                        <input 
+                            type="date" 
+                            id="dob" 
+                            required
+                        >
+                    </div>
+                    <span class="error-msg" id="dobError"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label>Password *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Enter password (min 6 characters)"
+                            required
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('password')">👁️</button>
+                    </div>
+                    <span class="error-msg" id="passwordError"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label>Confirm Password *</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            placeholder="Confirm your password"
+                            required
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">👁️</button>
+                    </div>
+                    <span class="error-msg" id="confirmError"></span>
+                </div>
+
+                <!-- Terms -->
+                <div class="form-check">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I agree to Terms of Service and Privacy Policy *</label>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+
+                <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+
+                <span class="error-msg general-error" id="generalError"></span>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+                <p><a href="index.html">Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Check if already logged in - redirect to dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('voterToken');
+            if (token) {
+                console.log('Already logged in, redirecting to dashboard');
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const dob = document.getElementById('dob').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Clear errors
+            document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+
+            // Validation
+            if (!fullName || fullName.length < 3) {
+                document.getElementById('nameError').textContent = 'Name must be at least 3 characters';
+                return;
+            }
+
+            if (!email || !email.includes('@')) {
+                document.getElementById('emailError').textContent = 'Valid email is required';
+                return;
+            }
+
+            if (!dob) {
+                document.getElementById('dobError').textContent = 'Date of birth is required';
+                return;
+            }
+
+            // Check age
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                document.getElementById('dobError').textContent = 'You must be at least 18 years old to vote';
+                return;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                document.getElementById('confirmError').textContent = 'Passwords do not match';
+                return;
+            }
+
+            if (!document.getElementById('terms').checked) {
+                showToast('❌ You must accept the terms and conditions', 'error');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('registerForm').style.opacity = '0.5';
+            document.getElementById('registerForm').style.pointerEvents = 'none';
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            try {
+                console.log('📝 Registration attempt:', email);
+
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fullName,
+                        email,
+                        password,
+                        dateOfBirth: dob,
+                        phone
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Registration failed');
+                }
+
+                if (!data.token) {
+                    throw new Error('No token received');
+                }
+
+                // ⭐ FIX: DO NOT STORE TOKEN AFTER REGISTRATION
+                // Just show success and redirect to login
+                console.log('✅ Registration successful');
+                showToast('✅ Registration successful! Redirecting to login...', 'success');
+
+                setTimeout(() => {
+                    // Clear any tokens
+                    localStorage.removeItem('voterToken');
+                    localStorage.removeItem('voterUser');
+                    // Redirect to login
+                    window.location.href = 'login.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('❌ Registration error:', error);
+                document.getElementById('generalError').textContent = `❌ ${error.message}`;
+                showToast(`❌ ${error.message}`, 'error');
+                
+                document.getElementById('registerForm').style.opacity = '1';
+                document.getElementById('registerForm').style.pointerEvents = 'auto';
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
