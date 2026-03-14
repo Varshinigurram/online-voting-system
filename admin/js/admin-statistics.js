@@ -2,7 +2,7 @@
  * Statistics Export - COMPLETE FIX
  */
 
-const ADMIN_API_URL = 'http://localhost:5000';
+const ADMIN_API_URL = window.ADMIN_API_URL || 'http://localhost:5000';
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();

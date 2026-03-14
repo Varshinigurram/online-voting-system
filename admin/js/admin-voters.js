@@ -2,7 +2,7 @@
  * Admin Voters Management - COMPLETE & WORKING
  */
 
-const ADMIN_API_URL = 'http://localhost:5000/api/admin';
+const ADMIN_API_URL = (window.ADMIN_API_URL || 'http://localhost:5000') + '/api/admin';
 const VOTERS_PER_PAGE = 15;
 
 let allVoters = [];

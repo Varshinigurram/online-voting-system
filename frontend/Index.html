@@ -217,8 +217,9 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="js/config.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.API_URL || 'http://localhost:5000';
 
         // Hamburger Menu
         document.getElementById('hamburger').addEventListener('click', () => {

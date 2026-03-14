@@ -181,8 +181,9 @@
         }
     </style>
 
+    <script src="js/config.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.ADMIN_API_URL || 'http://localhost:5000';
         let selectedImageFile = null;
 
         const PARTY_SYMBOLS = {

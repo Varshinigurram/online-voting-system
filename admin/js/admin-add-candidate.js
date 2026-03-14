@@ -10,7 +10,7 @@
  * - Secure submission
  */
 
-const ADMIN_API_URL = 'http://localhost:5000/api/admin';
+const ADMIN_API_URL = (window.ADMIN_API_URL || 'http://localhost:5000') + '/api/admin';
 let selectedImageFile = null;
 
 /**

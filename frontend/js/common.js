@@ -1,17 +1,8 @@
 /**
  * Common utilities for all voter pages
- * FIXED: Proper authentication checking
- */
-/**
- * Common utilities for all voter pages
  */
 
-// ⭐ CORRECT API URL - INCLUDE /api
-const API_URL = 
-    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5000/api'
-        : `${window.location.protocol}//${window.location.hostname}/api`;
-console.log("🔗 API URL:", API_URL);
+console.log("🔗 API URL:", window.API_URL || 'http://localhost:5000');
 
 /**
  * Check authentication
@@ -26,20 +17,6 @@ function checkAuth() {
         return null;
     }
     return token;
-}
-
-/**
- * Get voter data
- */
-function getVoterData() {
-    try {
-        const data = JSON.parse(localStorage.getItem('voterUser') || '{}');
-        console.log('👤 Voter data:', data);
-        return data;
-    } catch (error) {
-        console.error('Error parsing voter data:', error);
-        return {};
-    }
 }
 
 /**
@@ -90,18 +67,6 @@ function logout() {
         setTimeout(() => {
             window.location.href = 'index.html';
         }, 1000);
-    }
-}
-
-/**
- * Format date to readable format
- */
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    try {
-        return new Date(dateString).toLocaleDateString();
-    } catch {
-        return 'Invalid Date';
     }
 }
 
