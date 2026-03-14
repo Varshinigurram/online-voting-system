@@ -108,8 +108,9 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="js/config.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        const API_URL = window.API_URL || 'http://localhost:5000';
         let DEBUG = true;
 
         function log(msg, data = null) {
@@ -151,9 +152,9 @@
 
         async function loadElectionStatus(token, voter) {
             try {
-                log('📨 Fetching election status from:', API_URL + '/admin/election-status');
+                log('📨 Fetching election status from:', API_URL + '/api/admin/election-status');
 
-                const response = await fetch(`${API_URL}/admin/election-status`, {
+                const response = await fetch(`${API_URL}/api/admin/election-status`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -225,7 +226,7 @@
             try {
                 log('📨 Fetching candidates...');
 
-                const response = await fetch(`${API_URL}/voters/candidates`, {
+                const response = await fetch(`${API_URL}/api/voters/candidates`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,

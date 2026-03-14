@@ -3,7 +3,7 @@
  * Real-time election statistics with accurate calculations
  */
 
-const ADMIN_API_URL = 'http://localhost:5000/api/admin';
+const ADMIN_API_URL = (window.ADMIN_API_URL || 'http://localhost:5000') + '/api/admin';
 let dashboardRefreshInterval = null;
 const REFRESH_INTERVAL = 10000; // 10 seconds
 

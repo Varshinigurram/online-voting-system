@@ -2,7 +2,7 @@
  * Admin Authentication Module - FIXED
  */
 
-const ADMIN_API_URL = 'http://localhost:5000';
+const ADMIN_API_URL = window.ADMIN_API_URL || 'http://localhost:5000';
 
 const adminLoginForm = document.getElementById('adminLoginForm');
 const emailInput = document.getElementById('email');

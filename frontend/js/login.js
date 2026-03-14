@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.API_URL || 'http://localhost:5000';
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -51,7 +51,7 @@ loginForm?.addEventListener('submit', async (e) => {
             password: passwordInput.value
         };
 
-        const response = await fetch(`${API_URL}/auth/login`, {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

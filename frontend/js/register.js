@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api'; // Change to your backend URL
+const API_URL = window.API_URL || 'http://localhost:5000';
 
 // DOM Elements
 const registerForm = document.getElementById('registerForm');
@@ -251,7 +251,7 @@ registerForm?.addEventListener('submit', async (e) => {
             password: passwordInput.value
         };
 
-        const response = await fetch(`${API_URL}/auth/register`, {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
